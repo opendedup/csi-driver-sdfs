@@ -2,43 +2,43 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pvc-deployment-nfs
+  name: pvc-deployment-sdfs
 spec:
   accessModes:
     - ReadWriteMany  # In this example, multiple Pods consume the same PVC.
   resources:
     requests:
       storage: 10Gi
-  storageClassName: nfs-csi
+  storageClassName: sdfs-csi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deployment-nfs
+  name: deployment-sdfs
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: deployment-nfs
+      name: deployment-sdfs
   template:
     metadata:
-      name: deployment-nfs
+      name: deployment-sdfs
       labels:
-        name: deployment-nfs
+        name: deployment-sdfs
     spec:
       nodeSelector:
         "kubernetes.io/os": linux
       containers:
-        - name: deployment-nfs
+        - name: deployment-sdfs
           image: mcr.microsoft.com/oss/nginx/nginx:1.19.5
           command:
             - "/bin/bash"
             - "-c"
-            - set -euo pipefail; while true; do echo $(hostname) $(date) >> /mnt/nfs/outfile; sleep 1; done
+            - set -euo pipefail; while true; do echo $(hostname) $(date) >> /mnt/sdfs/outfile; sleep 1; done
           volumeMounts:
-            - name: nfs
-              mountPath: "/mnt/nfs"
+            - name: sdfs
+              mountPath: "/mnt/sdfs"
       volumes:
-        - name: nfs
+        - name: sdfs
           persistentVolumeClaim:
-            claimName: pvc-deployment-nfs
+            claimName: pvc-deployment-sdfs

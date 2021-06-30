@@ -1,6 +1,7 @@
 package sdfs
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -61,10 +62,14 @@ func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 		mountOptions = append(mountOptions, "ro")
 	}
 
-	s := req.GetVolumeContext()["paramServer"]
-	u := req.GetVolumeContext()["paramPassword"]
-	p := req.GetVolumeContext()["paramUser"]
-	d, _ := strconv.ParseBool(req.GetVolumeContext()["paramDedupe"])
+	s := req.GetVolumeContext()[paramServer]
+	u := req.GetVolumeContext()[paramPassword]
+	p := req.GetVolumeContext()[paramUser]
+	f, _ := strconv.ParseBool(req.GetVolumeContext()[paramShared])
+	d, _ := strconv.ParseBool(req.GetVolumeContext()[paramDedupe])
+	if !f {
+		s = fmt.Sprintf("%s/%s", s, req.GetVolumeContext()["subdir"])
+	}
 
 	mountOptions = append(mountOptions, "fsname="+s)
 	ns.con, err = spb.NewConnection(s, false)

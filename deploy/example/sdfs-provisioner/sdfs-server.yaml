@@ -1,0 +1,70 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: fast
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-ssd
+allowVolumeExpansion: true
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: sdfs-server
+  labels:
+    app: sdfs-server
+spec:
+  type: ClusterIP  # use "LoadBalancer" to get a public ip
+  selector:
+    app: sdfs-server
+  ports:
+    - name: tcp-6442
+      port: 6442
+      protocol: TCP
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: sdfs-server
+spec:
+  serviceName: "sdfs-server"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdfs-server
+  template:
+    metadata:
+      name: sdfs-server
+      labels:
+        app: sdfs-server
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: sdfs-server
+          image: docker.io/opendedup/sdfs:master
+          env:
+            - name: DISABLE_TLS
+              value: "true"
+            - name: CAPACITY
+              value: "1TB"
+          volumeMounts:
+            - name: sdfs-persistent-storage
+              mountPath: /opt/sdfs
+          securityContext:
+            privileged: true
+          ports:
+            - name: tcp-6442
+              containerPort: 6442
+              protocol: TCP
+  volumeClaimTemplates:
+  - metadata:
+     name: sdfs-persistent-storage
+     annotations:
+       volume.beta.kubernetes.io/storage-class: "fast"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1100Gi

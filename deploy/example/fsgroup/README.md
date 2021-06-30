@@ -11,7 +11,7 @@ add `--set feature.enableFSGroupPolicy=true` in helm installation command.
 ```console
 kubectl delete CSIDriver nfs.csi.k8s.io
 cat <<EOF | kubectl create -f -
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
   name: nfs.csi.k8s.io

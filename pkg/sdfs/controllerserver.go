@@ -41,6 +41,8 @@ type sdfsVolume struct {
 	user string
 	// password
 	password string
+	// shared folder
+	sharedFolder bool
 }
 
 // Ordering of elements in the CSI volume id.
@@ -88,10 +90,12 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 	// Create subdirectory under base-dir
 	// TODO: revisit permissions
-	internalVolumePath := cs.getInternalVolumePath(sdfsVol)
-	if err = os.Mkdir(internalVolumePath, 0777); err != nil && !os.IsExist(err) {
-		return nil, status.Errorf(codes.Internal, "failed to make subdirectory: %v", err.Error())
-	}
+	/*
+		internalVolumePath := cs.getInternalVolumePath(sdfsVol)
+		if err = os.Mkdir(internalVolumePath, 0777); err != nil && !os.IsExist(err) {
+			return nil, status.Errorf(codes.Internal, "failed to make subdirectory: %v", err.Error())
+		}
+	*/
 	return &csi.CreateVolumeResponse{Volume: cs.sdfsVolToCSI(sdfsVol)}, nil
 }
 
@@ -240,6 +244,8 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *sdfsVolume, 
 			paramUser:     vol.user,
 			paramPassword: vol.password,
 			paramDedupe:   strconv.FormatBool(vol.dedupe),
+			paramShared:   strconv.FormatBool(vol.sharedFolder),
+			"subdir":      vol.subDir,
 		},
 		VolumeCapability: volCap,
 		VolumeId:         vol.id,
@@ -267,6 +273,7 @@ func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[st
 		user     string
 		password string
 		dedupe   bool
+		shared   bool
 	)
 
 	// Validate parameters (case-insensitive).
@@ -281,6 +288,8 @@ func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[st
 			password = v
 		case paramDedupe:
 			dedupe, _ = strconv.ParseBool(v)
+		case paramShared:
+			shared, _ = strconv.ParseBool(v)
 
 		default:
 			return nil, fmt.Errorf("invalid parameter %q", k)
@@ -293,12 +302,13 @@ func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[st
 	}
 
 	vol := &sdfsVolume{
-		server:   server,
-		subDir:   name,
-		size:     size,
-		user:     user,
-		password: password,
-		dedupe:   dedupe,
+		server:       server,
+		subDir:       name,
+		size:         size,
+		user:         user,
+		password:     password,
+		dedupe:       dedupe,
+		sharedFolder: shared,
 	}
 	vol.id = cs.getVolumeIDFromSdfsVol(vol)
 
@@ -335,6 +345,7 @@ func (cs *ControllerServer) sdfsVolToCSI(vol *sdfsVolume) *csi.Volume {
 			paramDedupe:   strconv.FormatBool(vol.dedupe),
 			paramUser:     vol.user,
 			paramPassword: vol.password,
+			paramShared:   strconv.FormatBool(vol.sharedFolder),
 		},
 	}
 }
