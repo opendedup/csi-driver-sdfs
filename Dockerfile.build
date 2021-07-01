@@ -12,4 +12,4 @@ RUN  \
      cd /go/csi-driver-sdfs && \
      mkdir -p /go/csi-driver-sdfs/bin
 WORKDIR /go/sdfs-client-go/
-RUN make clean && make build
+RUN make build
