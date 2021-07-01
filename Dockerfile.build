@@ -11,5 +11,5 @@ RUN  \
      apk add --no-cache git build-base && \
      cd /go/csi-driver-sdfs && \
      mkdir -p /go/csi-driver-sdfs/bin
-WORKDIR /go/sdfs-client-go/
+WORKDIR  /go/csi-driver-sdfs/
 RUN make build
