@@ -4,7 +4,7 @@ steps:
     - --destination=gcr.io/$PROJECT_ID/csi-driver-sdfs-bin:$BRANCH_NAME
     - --cache=true
     - --cache-ttl=10h
-    - --dockerfile=Dockerfile.bin
+    - --dockerfile=Dockerfile.build
 - name: gcr.io/cloud-builders/docker
   entrypoint: 'bash'
   args: [ '-c', 'mkdir -p /workspace/bin']
