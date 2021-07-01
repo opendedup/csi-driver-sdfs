@@ -9,12 +9,12 @@ add `--set feature.enableFSGroupPolicy=true` in helm installation command.
 ### Option#2: Enable fsGroupPolicy support on a cluster with CSI driver already installed
 
 ```console
-kubectl delete CSIDriver nfs.csi.k8s.io
+kubectl delete CSIDriver sdfs.csi.k8s.io
 cat <<EOF | kubectl create -f -
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
-  name: nfs.csi.k8s.io
+  name: sdfs.csi.k8s.io
 spec:
   attachRequired: false
   volumeLifecycleModes:

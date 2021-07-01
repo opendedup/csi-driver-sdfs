@@ -49,6 +49,13 @@ spec:
               value: "true"
             - name: CAPACITY
               value: "1TB"
+            - name: REQUIRE_AUTH
+              value: "true"
+            - name: PASSWORD
+              valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: password
           volumeMounts:
             - name: sdfs-persistent-storage
               mountPath: /opt/sdfs

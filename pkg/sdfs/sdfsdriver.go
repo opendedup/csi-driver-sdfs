@@ -28,11 +28,10 @@ type Driver struct {
 const (
 	DriverName = "sdfs.csi.k8s.io"
 	// Address of the SDFS server
-	paramServer   = "server"        //the server url
-	paramDedupe   = "dedupe"        //Set clientside dedupe enabled
-	paramUser     = "user"          //The username to autheticate to sdfs
-	paramPassword = "password"      //The password to authenticate to sdfs
-	paramShared   = "shared-folder" //All data is shared across all volumes in the cluster
+	paramServer   = "server"   //the server url
+	paramDedupe   = "dedupe"   //Set clientside dedupe enabled
+	paramUser     = "user"     //The username to autheticate to sdfs
+	paramPassword = "password" //The password to authenticate to sdfs
 )
 
 var (

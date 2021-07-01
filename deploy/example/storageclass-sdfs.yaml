@@ -5,7 +5,7 @@ metadata:
   name: sdfs-csi
 provisioner: sdfs.csi.k8s.io
 parameters:
-  server: "sdfs://sdfs-server.default.svc.cluster.local:6442"
+  server: "sdfs://sdfs-server.default.svc.cluster.local:6442/sdfs-0"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 

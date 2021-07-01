@@ -41,8 +41,6 @@ type sdfsVolume struct {
 	user string
 	// password
 	password string
-	// shared folder
-	sharedFolder bool
 }
 
 // Ordering of elements in the CSI volume id.
@@ -69,7 +67,7 @@ func (cs *ControllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 
 	reqCapacity := req.GetCapacityRange().GetRequiredBytes()
-	sdfsVol, err := cs.newSDFSVolume(name, reqCapacity, req.GetParameters())
+	sdfsVol, err := cs.newSDFSVolume(name, reqCapacity, req.GetParameters(), req.GetSecrets())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -244,8 +242,6 @@ func (cs *ControllerServer) internalMount(ctx context.Context, vol *sdfsVolume, 
 			paramUser:     vol.user,
 			paramPassword: vol.password,
 			paramDedupe:   strconv.FormatBool(vol.dedupe),
-			paramShared:   strconv.FormatBool(vol.sharedFolder),
-			"subdir":      vol.subDir,
 		},
 		VolumeCapability: volCap,
 		VolumeId:         vol.id,
@@ -267,13 +263,12 @@ func (cs *ControllerServer) internalUnmount(ctx context.Context, vol *sdfsVolume
 }
 
 // Convert VolumeCreate parameters to an sdfsVolume
-func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[string]string) (*sdfsVolume, error) {
+func (cs *ControllerServer) newSDFSVolume(name string, size int64, params, secrets map[string]string) (*sdfsVolume, error) {
 	var (
 		server   string
 		user     string
 		password string
 		dedupe   bool
-		shared   bool
 	)
 
 	// Validate parameters (case-insensitive).
@@ -282,17 +277,20 @@ func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[st
 		switch strings.ToLower(k) {
 		case paramServer:
 			server = v
+		case paramDedupe:
+			dedupe, _ = strconv.ParseBool(v)
+
+		default:
+			return nil, fmt.Errorf("invalid parameter %q", k)
+		}
+	}
+
+	for k, v := range secrets {
+		switch strings.ToLower(k) {
 		case paramUser:
 			user = v
 		case paramPassword:
 			password = v
-		case paramDedupe:
-			dedupe, _ = strconv.ParseBool(v)
-		case paramShared:
-			shared, _ = strconv.ParseBool(v)
-
-		default:
-			return nil, fmt.Errorf("invalid parameter %q", k)
 		}
 	}
 
@@ -302,13 +300,12 @@ func (cs *ControllerServer) newSDFSVolume(name string, size int64, params map[st
 	}
 
 	vol := &sdfsVolume{
-		server:       server,
-		subDir:       name,
-		size:         size,
-		user:         user,
-		password:     password,
-		dedupe:       dedupe,
-		sharedFolder: shared,
+		server:   server,
+		subDir:   name,
+		size:     size,
+		user:     user,
+		password: password,
+		dedupe:   dedupe,
 	}
 	vol.id = cs.getVolumeIDFromSdfsVol(vol)
 
@@ -332,7 +329,7 @@ func (cs *ControllerServer) getInternalMountPath(vol *sdfsVolume) string {
 //     Instead of refcounting how many CreateVolume calls are using the same
 //     share, it's simpler to just do a mount per request.
 func (cs *ControllerServer) getInternalVolumePath(vol *sdfsVolume) string {
-	return filepath.Join(cs.getInternalMountPath(vol), vol.subDir)
+	return filepath.Join(cs.getInternalMountPath(vol))
 }
 
 // Convert into sdfsVolume into a csi.Volume
@@ -345,7 +342,6 @@ func (cs *ControllerServer) sdfsVolToCSI(vol *sdfsVolume) *csi.Volume {
 			paramDedupe:   strconv.FormatBool(vol.dedupe),
 			paramUser:     vol.user,
 			paramPassword: vol.password,
-			paramShared:   strconv.FormatBool(vol.sharedFolder),
 		},
 	}
 }
