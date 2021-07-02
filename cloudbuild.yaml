@@ -10,7 +10,7 @@ steps:
   args: [ '-c', 'mkdir -p /workspace/bin']
 - name: gcr.io/cloud-builders/docker
   entrypoint: 'bash'
-  args: [ '-c', 'docker run -v /workspace/bin:/opt/mount --rm --entrypoint cp gcr.io/$PROJECT_ID/csi-driver-sdfs-bin:$BRANCH_NAME /go/sdfs-client-go/bin/sdfsplugin /opt/mount/sdfsplugin']
+  args: [ '-c', 'docker run -v /workspace/bin:/opt/mount --rm --entrypoint cp gcr.io/$PROJECT_ID/csi-driver-sdfs-bin:$BRANCH_NAME /go/csi-driver-sdfs/bin/sdfsplugin /opt/mount/sdfsplugin']
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: [ '-c', "gsutil cp /workspace/bin/sdfsplugin gs://${_DIST_BUCKET}/csi-driver-sdfs/sdfsplugin-$BRANCH_NAME" ]
