@@ -14,14 +14,25 @@ steps:
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: [ '-c', "gsutil cp /workspace/bin/sdfsplugin gs://${_DIST_BUCKET}/csi-driver-sdfs/sdfsplugin-$BRANCH_NAME" ]
+- name: gcr.io/kaniko-project/executor:latest
+  args:
+    - --destination=gcr.io/$PROJECT_ID/csi-driver-sdfs:$BRANCH_NAME
+    - --cache=true
+    - --cache-ttl=10h
+    - --dockerfile=Dockerfile
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker login --username=$$USERNAME --password=$$PASSWORD']
   secretEnv: ['USERNAME', 'PASSWORD']
-- name: gcr.io/cloud-builders/docker
-  args: ['-c', 'docker build -t $$USERNAME/csi-driver-sdfs:$BRANCH_NAME .']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull  gcr.io/$PROJECT_ID/csi-driver-sdfs:$BRANCH_NAME']
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker tag  gcr.io/$PROJECT_ID/csi-driver-sdfs:$BRANCH_NAME $$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
   secretEnv: ['USERNAME']
-- name: gcr.io/cloud-builders/docker
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
   args: ['-c', 'docker push $$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
   secretEnv: ['USERNAME']
 substitutions:
@@ -31,7 +42,7 @@ options:
   machineType: 'N1_HIGHCPU_8'
 availableSecrets:
    secretManager:
-   - versionName: projects/$PROJECT_NUMBER/secrets/docker-password/versions/1
+   - versionName: projects/739187472495/secrets/docker-password/versions/1
      env: 'PASSWORD'
-   - versionName: projects/$PROJECT_NUMBER/secrets/docker-username/versions/1
+   - versionName: projects/739187472495/secrets/docker-username/versions/1
      env: 'USERNAME'
