@@ -19,11 +19,11 @@ steps:
   args: ['-c', 'docker login --username=$$USERNAME --password=$$PASSWORD']
   secretEnv: ['USERNAME', 'PASSWORD']
 - name: gcr.io/cloud-builders/docker
+  args: ['build','-t','docker.io/$$USERNAME/csi-driver-sdfs:$BRANCH_NAME','.']
   secretEnv: ['USERNAME']
-  args: ['build','-t','docker.io/$$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
 - name: gcr.io/cloud-builders/docker
-  secretEnv: ['USERNAME']
   args: ['push', 'docker.io/$$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
+  secretEnv: ['USERNAME']
 substitutions:
   _DIST_BUCKET: abucket # default value
 timeout: 10800s
