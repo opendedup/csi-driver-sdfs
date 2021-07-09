@@ -19,10 +19,10 @@ steps:
   args: ['-c', 'docker login --username=$$USERNAME --password=$$PASSWORD']
   secretEnv: ['USERNAME', 'PASSWORD']
 - name: gcr.io/cloud-builders/docker
-  args: ['-c', 'docker build -t docker.io/$$USERNAME/csi-driver-sdfs:$BRANCH_NAME .']
+  args: ['-c', 'docker build -t $$USERNAME/csi-driver-sdfs:$BRANCH_NAME .']
   secretEnv: ['USERNAME']
 - name: gcr.io/cloud-builders/docker
-  args: ['-c', 'docker push docker.io/$$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
+  args: ['-c', 'docker push $$USERNAME/csi-driver-sdfs:$BRANCH_NAME']
   secretEnv: ['USERNAME']
 substitutions:
   _DIST_BUCKET: abucket # default value
